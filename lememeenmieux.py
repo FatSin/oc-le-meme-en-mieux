@@ -29,19 +29,62 @@ prod_list=list(prod_tup)
 stay=1
 while (stay):
     #Interaction with the user
-    print("Le même en mieux : faites vous plaisir tout en mangeant mieux.")
-    print("Faites votre choix:")
+    print("\n\nLe même en mieux : faites vous plaisir tout en mangeant mieux.\n\n")
+    print("Faites votre choix:\n")
     print("1) Rechercher une catégorie")
     print("2) Afficher les recherches sauvegardées")
+    print("3) Effacer les recherches sauvegardées\n")
     #c.execute("""SELECT (id,CategoryName) FROM Categories""")
-    menu = input("Entrez 1 ou 2 : ")
+    menu = input("Entrez 1, 2 ou 3: ")
 
-    while menu not in ["1","2"]:
+    while menu not in ["1","2","3"]:
         print("Saisie incorrecte !")
-        menu = input("Entrez 1 ou 2 : ")
+        menu = input("Entrez 1, 2 ou 3: ")
         
     if (menu == "2"):
-        print("Cette fonctionnalité n'est pas encore implémentée")
+        c.execute("""SELECT ProductName,SubName from Substitutes ORDER BY id """)
+        subaslist=list(c.fetchall())
+
+        print("Choisissez parmi les produits suivants :")
+        #print(cat_list)
+        #print(prod_list)
+
+        sub_id_list=[0]
+        new_id_sub=1
+        for elt in subaslist:
+            #print(" ",eltp[0]," - ",eltp[1])
+            print(" ",new_id_sub," - ",elt[1],"peut remplacer",elt[0])
+            sub_id_list.append(new_id_sub)
+            new_id_sub+=1
+
+        choice=1000
+        while (choice not in sub_id_list):
+            print("Entrez 0 pour revenir au menu")
+            menu_sub = input("Ou entrez le numéro d'une alternative pour avoir plus d'infos : ")
+            try:
+                choice=int(menu_sub)
+            except EOFError as e:
+                print("Saisie incorrecte !")
+            except ValueError as v:
+                print("Saisie incorrecte !")
+                        
+        
+        if choice == 0:
+            pass
+        else:
+            sub_choice = subaslist[choice-1][1]
+            c.execute("""SELECT Places,Stores,Link from Products WHERE ProductName like %s """,(sub_choice,))
+
+            infoaslist=list(c.fetchone())
+            print("Nom de l'alternative :",sub_choice)
+            print("Pays ou Ville :",infoaslist[0])
+            print("Lieu de Vente :",infoaslist[1])
+            print("Plus d'info ici :",infoaslist[2])
+            
+    elif (menu == "3"):
+        c.execute("""TRUNCATE TABLE Substitutes;""")
+
+           
     elif (menu =="1"):
         print("Choisissez parmi les catégories suivantes :")
 
@@ -101,7 +144,7 @@ while (stay):
 
         choice=0
         while (choice not in prod_id_list):
-            prod_num = input("Entrez le numéro d'une catégorie : ")
+            prod_num = input("Entrez le numéro d'un produit : ")
             try:
                 choice=int(prod_num)
             except EOFError as e:
@@ -137,7 +180,7 @@ while (stay):
             print("Voici la meilleure alternative à votre produit :")
             print(candidate_list[0])
 
-            print("Voulez-vous voir plus d'informations sur cette alternative ?")
+            print("Voulez-vous voir afficher les infos relatives à cette alternative ?")
             moreinfo = input(" 1-Oui 2-Non : ")
 
             while moreinfo not in ["1","2"]:
@@ -147,11 +190,13 @@ while (stay):
             if (moreinfo == "2"):
                 pass
             elif (moreinfo =="1"):
-                c.execute("""SELECT (Places,Stores,Link) from Products WHERE ProductName like %s """,(prod_choice,))
+                c.execute("""SELECT Places,Stores,Link from Products WHERE ProductName like %s """,(candidate_list[0],))
 
-                infoaslist=list(c.fetchall())
-                print("Vous pouvez trouver ce produit ici :")
-                print(infoaslist)
+                infoaslist=list(c.fetchone())
+                print("Nom de l'alternative :",candidate_list[0])
+                print("Pays ou Ville :",infoaslist[0])
+                print("Lieu de Vente :",infoaslist[1])
+                print("Plus d'info ici :",infoaslist[2])
         
             print("Voulez-vous sauvegarder ce résultat ? ")
             save = input(" 1-Oui 2-Non : ")
@@ -163,13 +208,15 @@ while (stay):
             if (save == "2"):
                 pass
             elif (save =="1"):
-                c.execute("""INSERT INTO Substitutes (ProductName,SubName) VALUES (%s,%s)""", (prod_choice,sub_list[1],))
+                print("Sauvegarde en cours pour le couple ",prod_choice,"/",candidate_list[0])
+                c.execute("""INSERT INTO Substitutes (ProductName,SubName) VALUES (%s,%s)""",(prod_choice,candidate_list[0],))
                 print("Alternative sauvegardée ! ")
                 
 
         print("Revenir au menu principal ?")
         print("1-oui      2-quitter le programme")
         back=input("Votre choix : ")
+        
         while back not in ["1","2"]:
             print("Saisie incorrecte !")
             back = input("Entrez 1 ou 2 : ")
