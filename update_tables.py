@@ -43,9 +43,19 @@ c.execute('SET character_set_connection=utf8;')
 #c.execute("""DROP TABLE IF EXISTS Products """)
 #c.execute("""DROP TABLE IF EXISTS Categories """)
 
-c.execute("""TRUNCATE TABLE Substitutes """)
-c.execute("""TRUNCATE TABLE  Products """)
-c.execute("""TRUNCATE TABLE  Categories """)
+c.execute("""ALTER TABLE Substitutes
+            DROP FOREIGN KEY sub_k""")
+c.execute("""ALTER TABLE Products
+            DROP FOREIGN KEY prod_k""")
+
+c.execute('TRUNCATE TABLE Substitutes;')
+c.execute('TRUNCATE TABLE  Products;')
+c.execute('TRUNCATE TABLE  Categories;')
+
+c.execute("""ALTER TABLE Products
+            ADD CONSTRAINT prod_k FOREIGN KEY (id) REFERENCES Categories (id)""")
+c.execute("""ALTER TABLE Substitutes
+            ADD CONSTRAINT sub_k FOREIGN KEY (id) REFERENCES Products (id)""")
 
 #Creation of Categories and Products tables -> handled by .sql script
 #c.execute("""CREATE TABLE IF NOT EXISTS Categories (

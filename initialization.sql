@@ -1,11 +1,13 @@
 CREATE DATABASE openfood CHARACTER SET 'utf8';
 USE openfood;
+SET NAMES utf8;
+SET DEFAULT CHARACTER SET utf8;
+SET character_set_connection=utf8;
 
 CREATE TABLE IF NOT EXISTS Categories (
     id SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     CategoryName VARCHAR(40) UNIQUE NOT NULL
-)
-ENGINE=InnoDB;
+);
 
 
 CREATE TABLE IF NOT EXISTS Products (
@@ -15,7 +17,9 @@ CREATE TABLE IF NOT EXISTS Products (
     Places VARCHAR(40),
     Stores VARCHAR(40),
 	Grade VARCHAR(1) NOT NULL,
-	Link VARCHAR(100)
+	Link VARCHAR(100),
+	CONSTRAINT prod_k
+		FOREIGN KEY (id) REFERENCES Categories (id)
 )
 ENGINE=InnoDB;
 
@@ -25,7 +29,9 @@ CREATE TABLE IF NOT EXISTS Substitutes (
     SubName VARCHAR(40) NOT NULL,
     Places VARCHAR(40),
     Stores VARCHAR(40),
-	Link VARCHAR(100)
+	Link VARCHAR(100),
+	CONSTRAINT sub_k
+		FOREIGN KEY (id) REFERENCES Products (id)
 )
 ENGINE=InnoDB;
 
