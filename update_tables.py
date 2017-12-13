@@ -39,29 +39,33 @@ c.execute('SET character_set_connection=utf8;')
 
 
 #Erase the existing tables
-c.execute("""DROP TABLE IF EXISTS Substitutes """)
-c.execute("""DROP TABLE IF EXISTS Products """)
-c.execute("""DROP TABLE IF EXISTS Categories """)
+#c.execute("""DROP TABLE IF EXISTS Substitutes """)
+#c.execute("""DROP TABLE IF EXISTS Products """)
+#c.execute("""DROP TABLE IF EXISTS Categories """)
 
-#Creation of Categories and Products tables
-c.execute("""CREATE TABLE IF NOT EXISTS Categories (
-    id SMALLINT UNSIGNED NOT NULL PRIMARY KEY,
-    CategoryName VARCHAR(40) UNIQUE NOT NULL)""")
+c.execute("""TRUNCATE TABLE Substitutes """)
+c.execute("""TRUNCATE TABLE  Products """)
+c.execute("""TRUNCATE TABLE  Categories """)
+
+#Creation of Categories and Products tables -> handled by .sql script
+#c.execute("""CREATE TABLE IF NOT EXISTS Categories (
+#    id SMALLINT UNSIGNED NOT NULL PRIMARY KEY,
+#    CategoryName VARCHAR(40) UNIQUE NOT NULL)""")
 	
-c.execute("""CREATE TABLE IF NOT EXISTS Products (
-    id SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    ProductName VARCHAR(40) UNIQUE NOT NULL,
-    CategoryName VARCHAR(40) NOT NULL,
-    Places VARCHAR(40),
-    Stores VARCHAR(40),
-    Grade VARCHAR(1) NOT NULL)""")
+#c.execute("""CREATE TABLE IF NOT EXISTS Products (
+ #   id SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  #  ProductName VARCHAR(40) UNIQUE NOT NULL,
+   # CategoryName VARCHAR(40) NOT NULL,
+#    Places VARCHAR(40),
+#    Stores VARCHAR(40),
+#    Grade VARCHAR(1) NOT NULL)""")
 
-c.execute("""CREATE TABLE IF NOT EXISTS Substitutes (
-    id SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    ProductName VARCHAR(40) NOT NULL,
-    SubName VARCHAR(40) NOT NULL,
-    purchase_places VARCHAR(40),
-    stores VARCHAR(40))""")
+#c.execute("""CREATE TABLE IF NOT EXISTS Substitutes (
+#    id SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+#    ProductName VARCHAR(40) NOT NULL,
+#    SubName VARCHAR(40) NOT NULL,
+#    purchase_places VARCHAR(40),
+#    stores VARCHAR(40))""")
 
 #c.execute("""CREATE TABLE IF NOT EXISTS Products (
 #    id SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -104,15 +108,22 @@ for element in data:
                 #print("Il y a déjà", len(cat_list),"occurrences pour la catégorie",cat_short[0])
                 
                 c.execute("""INSERT IGNORE INTO Categories (id,CategoryName) VALUES (%s,%s)""", (cat_id,cat_fin,))
-                c.execute("""INSERT INTO Products (ProductName,CategoryName,Grade) VALUES (%s,%s,%s)""", (prod_short,cat_fin,entry["nutrition_grade_fr"],))
-                print("Ce produit est ajouté :", entry["product_name"])
 
+                if ("stores" in entry.keys() and "purchase_places" and "url" in entry.keys()):
+                    c.execute("""INSERT IGNORE INTO Products (ProductName,CategoryName,Grade,Places,Stores,Link) VALUES (%s,%s,%s,%s,%s,%s)""", (prod_short,cat_fin,entry["nutrition_grade_fr"],entry["purchase_places"],entry["stores"],entry["url"],))
+                    print("stores, place et url :", entry["stores"], entry["purchase_places"], entry["url"])
+                else:
+                    c.execute("""INSERT IGNORE INTO Products (ProductName,CategoryName,Grade) VALUES (%s,%s,%s)""", (prod_short,cat_fin,entry["nutrition_grade_fr"],))
+
+                print("Ce produit est ajouté :", entry["product_name"])
+                
                 if (len(cat_list) == 0):
                    cat_id+=1 
                 
                 #Import location of the products, if it exists
-                #if ("stores" in entry.keys() and "purchase_places" in entry.keys()):
-                #    c.execute("""INSERT INTO Products (Places,Stores) VALUES (%s,%s)""", (entry["purchase_places"],entry["stores"],))                
+                #print("stores, place et url :", entry["stores"], entry["purchase_places"], entry["url"])
+                #if ("stores" in entry.keys() and "purchase_places" and "url" in entry.keys()):
+                    #c.execute("""INSERT INTO Products (Places,Stores,Link) VALUES (%s,%s,%s)""", (entry["purchase_places"],entry["stores"],entry["url"],))                
         else:
             print("Keys pas bonnes!!")
 
