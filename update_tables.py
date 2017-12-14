@@ -43,19 +43,18 @@ c.execute('SET character_set_connection=utf8;')
 #c.execute("""DROP TABLE IF EXISTS Products """)
 #c.execute("""DROP TABLE IF EXISTS Categories """)
 
-c.execute("""ALTER TABLE Substitutes
-            DROP FOREIGN KEY sub_k""")
-c.execute("""ALTER TABLE Products
-            DROP FOREIGN KEY prod_k""")
+
+#c.execute("""ALTER TABLE Products
+ #           DROP FOREIGN KEY prod_k""")
 
 c.execute('TRUNCATE TABLE Substitutes;')
 c.execute('TRUNCATE TABLE  Products;')
 c.execute('TRUNCATE TABLE  Categories;')
 
-c.execute("""ALTER TABLE Products
-            ADD CONSTRAINT prod_k FOREIGN KEY (id) REFERENCES Categories (id)""")
-c.execute("""ALTER TABLE Substitutes
-            ADD CONSTRAINT sub_k FOREIGN KEY (id) REFERENCES Products (id)""")
+#c.execute("""ALTER TABLE Products
+#            ADD CONSTRAINT prod_k FOREIGN KEY (CatNum) REFERENCES Categories (id)""")
+#c.execute("""ALTER TABLE Substitutes
+#            ADD CONSTRAINT sub_k FOREIGN KEY (ProdNum) REFERENCES Products (id)""")
 
 #Creation of Categories and Products tables -> handled by .sql script
 #c.execute("""CREATE TABLE IF NOT EXISTS Categories (
@@ -95,8 +94,8 @@ for element in data:
         #Check the presence of critical keys/columns
         if ("categories" in entry.keys() and "product_name" in entry.keys() and "nutrition_grade_fr" in entry.keys()):
             if (entry["categories"] == '' or entry["product_name"] == ''):
-                print("Rejeté car nul : - categorie : ",entry["categories"],"et produit",entry["product_name"])
-                #pass
+                #print("Rejeté car nul : - categorie : ",entry["categories"],"et produit",entry["product_name"])
+                pass
                 #print("cette cat est vide!")
             else:
                 #Retrieve the French name of the category
@@ -113,29 +112,42 @@ for element in data:
 
                 print("Ajout en cours : - categorie : ",cat_fin,"et produit",prod_short)
 
-                c.execute("""SELECT * FROM Categories WHERE CategoryName like %s""", (cat_fin,))
+                c.execute("""SELECT id FROM Categories WHERE CategoryName like %s""", (cat_fin,))
                 cat_list=list(c.fetchall())
-                #print("Il y a déjà", len(cat_list),"occurrences pour la catégorie",cat_short[0])
-                
-                c.execute("""INSERT IGNORE INTO Categories (id,CategoryName) VALUES (%s,%s)""", (cat_id,cat_fin,))
+                lg=len(cat_list)
+                print(cat_list)
+                print("Il y a déjà", lg,"occurrences pour la catégorie",cat_fin)
+            
+                if (lg==0):
+                    c.execute("""INSERT IGNORE INTO Categories (id,CategoryName) VALUES (%s,%s)""", (cat_id,cat_fin,))
 
-                if ("stores" in entry.keys() and "purchase_places" and "url" in entry.keys()):
-                    c.execute("""INSERT IGNORE INTO Products (ProductName,CategoryName,Grade,Places,Stores,Link) VALUES (%s,%s,%s,%s,%s,%s)""", (prod_short,cat_fin,entry["nutrition_grade_fr"],entry["purchase_places"],entry["stores"],entry["url"],))
-                    print("stores, place et url :", entry["stores"], entry["purchase_places"], entry["url"])
+                    #Import information and location, if they exist
+                    if ("stores" in entry.keys() and "purchase_places" and "url" in entry.keys()):
+                        c.execute("""INSERT IGNORE INTO Products (ProductName,CategoryName,Grade,Places,Stores,Link,CatNum) VALUES (%s,%s,%s,%s,%s,%s,%s)""", (prod_short,cat_fin,entry["nutrition_grade_fr"],entry["purchase_places"],entry["stores"],entry["url"],cat_id))
+                        print("stores, place et url :", entry["stores"], entry["purchase_places"], entry["url"])
+                    else:
+                        c.execute("""INSERT IGNORE INTO Products (ProductName,CategoryName,Grade,CatNum) VALUES (%s,%s,%s,%s)""", (prod_short,cat_fin,entry["nutrition_grade_fr"],cat_id,))
+
+                    print("Ce produit est ajouté :", entry["product_name"])
+                    
+                    cat_id+=1
+
                 else:
-                    c.execute("""INSERT IGNORE INTO Products (ProductName,CategoryName,Grade) VALUES (%s,%s,%s)""", (prod_short,cat_fin,entry["nutrition_grade_fr"],))
+                    if ("stores" in entry.keys() and "purchase_places" and "url" in entry.keys()):
+                        c.execute("""INSERT IGNORE INTO Products (ProductName,CategoryName,Grade,Places,Stores,Link,CatNum) VALUES (%s,%s,%s,%s,%s,%s,%s)""", (prod_short,cat_fin,entry["nutrition_grade_fr"],entry["purchase_places"],entry["stores"],entry["url"],cat_list[0]))
+                        print("stores, place et url :", entry["stores"], entry["purchase_places"], entry["url"])
+                    else:
+                        c.execute("""INSERT IGNORE INTO Products (ProductName,CategoryName,Grade,CatNum) VALUES (%s,%s,%s,%s)""", (prod_short,cat_fin,entry["nutrition_grade_fr"],cat_list[0],))
 
-                print("Ce produit est ajouté :", entry["product_name"])
-                
-                if (len(cat_list) == 0):
-                   cat_id+=1 
-                
-                #Import location of the products, if it exists
-                #print("stores, place et url :", entry["stores"], entry["purchase_places"], entry["url"])
-                #if ("stores" in entry.keys() and "purchase_places" and "url" in entry.keys()):
-                    #c.execute("""INSERT INTO Products (Places,Stores,Link) VALUES (%s,%s,%s)""", (entry["purchase_places"],entry["stores"],entry["url"],))                
+                    print("Ce produit est ajouté :", entry["product_name"])
+                        
         else:
             print("Keys pas bonnes!!")
+
+c.execute("""ALTER TABLE Products
+            ADD CONSTRAINT prod_k FOREIGN KEY (CatNum) REFERENCES Categories (id)""")
+
+
 
 
 db.commit()
