@@ -45,7 +45,7 @@ c.execute('SET character_set_connection=utf8;')
 
 
 #c.execute("""ALTER TABLE Products
- #           DROP FOREIGN KEY prod_k""")
+#           DROP FOREIGN KEY prod_k""")
 
 c.execute('TRUNCATE TABLE Substitutes;')
 c.execute('TRUNCATE TABLE  Products;')
@@ -123,10 +123,13 @@ for element in data:
 
                     #Import information and location, if they exist
                     if ("stores" in entry.keys() and "purchase_places" and "url" in entry.keys()):
-                        c.execute("""INSERT IGNORE INTO Products (ProductName,CategoryName,Grade,Places,Stores,Link,CatNum) VALUES (%s,%s,%s,%s,%s,%s,%s)""", (prod_short,cat_fin,entry["nutrition_grade_fr"],entry["purchase_places"],entry["stores"],entry["url"],cat_id))
+                        #c.execute("""INSERT IGNORE INTO Products (ProductName,CategoryName,Grade,Places,Stores,Link,CatNum) VALUES (%s,%s,%s,%s,%s,%s,%s)""", (prod_short,cat_fin,entry["nutrition_grade_fr"],entry["purchase_places"],entry["stores"],entry["url"],cat_id))
+                        c.execute("""INSERT IGNORE INTO Products (ProductName,Grade,Places,Stores,Link,CatNum) VALUES (%s,%s,%s,%s,%s,%s)""", (prod_short,entry["nutrition_grade_fr"],entry["purchase_places"],entry["stores"],entry["url"],cat_id))
+
                         print("stores, place et url :", entry["stores"], entry["purchase_places"], entry["url"])
                     else:
-                        c.execute("""INSERT IGNORE INTO Products (ProductName,CategoryName,Grade,CatNum) VALUES (%s,%s,%s,%s)""", (prod_short,cat_fin,entry["nutrition_grade_fr"],cat_id,))
+                        #c.execute("""INSERT IGNORE INTO Products (ProductName,CategoryName,Grade,CatNum) VALUES (%s,%s,%s,%s)""", (prod_short,cat_fin,entry["nutrition_grade_fr"],cat_id,))
+                        c.execute("""INSERT IGNORE INTO Products (ProductName,Grade,CatNum) VALUES (%s,%s,%s)""", (prod_short,entry["nutrition_grade_fr"],cat_id,))
 
                     print("Ce produit est ajouté :", entry["product_name"])
                     
@@ -134,10 +137,14 @@ for element in data:
 
                 else:
                     if ("stores" in entry.keys() and "purchase_places" and "url" in entry.keys()):
-                        c.execute("""INSERT IGNORE INTO Products (ProductName,CategoryName,Grade,Places,Stores,Link,CatNum) VALUES (%s,%s,%s,%s,%s,%s,%s)""", (prod_short,cat_fin,entry["nutrition_grade_fr"],entry["purchase_places"],entry["stores"],entry["url"],cat_list[0]))
+                        #c.execute("""INSERT IGNORE INTO Products (ProductName,CategoryName,Grade,Places,Stores,Link,CatNum) VALUES (%s,%s,%s,%s,%s,%s,%s)""", (prod_short,cat_fin,entry["nutrition_grade_fr"],entry["purchase_places"],entry["stores"],entry["url"],cat_list[0]))
+                        c.execute("""INSERT IGNORE INTO Products (ProductName,Grade,Places,Stores,Link,CatNum) VALUES (%s,%s,%s,%s,%s,%s)""", (prod_short,entry["nutrition_grade_fr"],entry["purchase_places"],entry["stores"],entry["url"],cat_list[0]))
+
                         print("stores, place et url :", entry["stores"], entry["purchase_places"], entry["url"])
                     else:
-                        c.execute("""INSERT IGNORE INTO Products (ProductName,CategoryName,Grade,CatNum) VALUES (%s,%s,%s,%s)""", (prod_short,cat_fin,entry["nutrition_grade_fr"],cat_list[0],))
+                        #c.execute("""INSERT IGNORE INTO Products (ProductName,Grade,CatNum) VALUES (%s,%s,%s)""", (prod_short,entry["nutrition_grade_fr"],cat_list[0],))
+                        #c.execute("""INSERT IGNORE INTO Products (ProductName,CategoryName,Grade,CatNum) VALUES (%s,%s,%s,%s)""", (prod_short,cat_fin,entry["nutrition_grade_fr"],cat_list[0],))
+                        c.execute("""INSERT IGNORE INTO Products (ProductName,Grade,CatNum) VALUES (%s,%s,%s)""", (prod_short,entry["nutrition_grade_fr"],cat_list[0],))
 
                     print("Ce produit est ajouté :", entry["product_name"])
                         
@@ -146,6 +153,11 @@ for element in data:
 
 c.execute("""ALTER TABLE Products
             ADD CONSTRAINT prod_k FOREIGN KEY (CatNum) REFERENCES Categories (id)""")
+
+c.execute("""ALTER TABLE Substitutes
+            ADD CONSTRAINT sub_k FOREIGN KEY (ProdNum) REFERENCES Products (id)""")
+c.execute("""ALTER TABLE Substitutes
+            ADD CONSTRAINT sub_k2 FOREIGN KEY (id) REFERENCES Products (id)""")
 
 
 
